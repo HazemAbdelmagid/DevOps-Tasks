@@ -48,43 +48,43 @@ stages:
 #     - task: SonarCloudAnalyze@1
 #       displayName: 'Running Code Analysis'
 
-- stage: 'Building'
-  jobs:
-  - job: 'Building_Docker_Image'
-    steps:
-    - task: Docker@2
-      displayName: 'Building Docker Image'
-      inputs:
-        command: build
-        arguments: --tag $(registry_domain)/$(repo_name)/$(image_name)
-    - task: ArtifactoryDocker@1
-      displayName: 'Pushing Docker Image to JFrog Artifactory'
-      inputs:
-        command: 'push'
-        artifactoryService: 'JFrog Connection'
-        targetRepo: '$(registry_domain)/$(repo_name)'
-        imageName: '$(registry_domain)/$(repo_name)/$(image_name):$(image_tag)'
+# - stage: 'Building'
+#   jobs:
+#   - job: 'Building_Docker_Image'
+#     steps:
+#     - task: Docker@2
+#       displayName: 'Building Docker Image'
+#       inputs:
+#         command: build
+#         arguments: --tag $(registry_domain)/$(repo_name)/$(image_name)
+#     - task: ArtifactoryDocker@1
+#       displayName: 'Pushing Docker Image to JFrog Artifactory'
+#       inputs:
+#         command: 'push'
+#         artifactoryService: 'JFrog Connection'
+#         targetRepo: '$(registry_domain)/$(repo_name)'
+#         imageName: '$(registry_domain)/$(repo_name)/$(image_name):$(image_tag)'
 
 
 - stage: 'Deploying'
   jobs:
   - job: 'Deployment_Job'
     steps:
-    - task: TerraformInstaller@0
-      inputs:
-        terraformVersion: 'latest'
-      displayName: 'Terrafrom Installation'
-    - script: |
-        chmod +x script.sh
-        ./script.sh
-      displayName: 'Install Dependencies'
-    - task: ArtifactoryDocker@1
-      inputs:
-        command: 'pull'
-        artifactoryService: 'JFrog Connection'
-        sourceRepo: '$(repo_name)'
-        imageName: '$(registry_domain)/$(repo_name)/$(image_name):$(image_tag)'
-      displayName: 'Pulling docker Image'
+#     - task: TerraformInstaller@0
+#       inputs:
+#         terraformVersion: 'latest'
+#       displayName: 'Terrafrom Installation'
+#     - script: |
+#         chmod +x script.sh
+#         ./script.sh
+#       displayName: 'Install Dependencies'
+#     - task: ArtifactoryDocker@1
+#       inputs:
+#         command: 'pull'
+#         artifactoryService: 'JFrog Connection'
+#         sourceRepo: '$(repo_name)'
+#         imageName: '$(registry_domain)/$(repo_name)/$(image_name):$(image_tag)'
+#       displayName: 'Pulling docker Image'
     - task: AWSShellScript@1
       inputs:
         awsCredentials: 'AWS Credentials'
@@ -92,6 +92,7 @@ stages:
         scriptType: 'inline'
         inlineScript: |
           aws eks update-kubeconfig --name app-eks-cluster
+          ls -lh .docker/
           kubectl create secret generic my-key --from-file=.dockerconfigjson=.docker/config.json --type=kubernetes.io/dockerconfigjson
-          kubectl apply -f app-config.yaml
+#          kubectl apply -f app-config.yaml
       displayName: 'EKS Cluster Creation and Connection and Deployment'
