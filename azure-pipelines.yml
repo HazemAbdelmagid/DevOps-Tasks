@@ -70,6 +70,7 @@ stages:
         targetRepo: '$(registry_domain)/$(repo_name)'
         imageName: '$(registry_domain)/$(repo_name)/$(image_name):$(image_name)'
 
+
 # - stage: 'Deploying'
 #   jobs:
 #   - job: 'TerraformInstallation'
