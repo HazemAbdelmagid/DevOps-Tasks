@@ -2,51 +2,51 @@ trigger:
 - main
 
 variables:
-  sonar_org: hazemabdelmagid
-  sonar_project_key: HazemAbdelmagid_DevOps-Tasks
+  # sonar_org: hazemabdelmagid
+  # sonar_project_key: HazemAbdelmagid_DevOps-Tasks
   registry_domain: devopsserver2021.jfrog.io
   repo_name: docker-image-repo
   image_name: app
   image_tag: latest
-  aws_region: ca-central-1
+  # aws_region: ca-central-1
 
 pool:
   vmImage: ubuntu-latest
 
 stages:
 
-- stage: 'Testing'
-  jobs:
-  - job: 'Testing_Job'
-    steps:
-    - script: |
-        python3 -m pip install --upgrade pip
-        pip3 install -r requirements.txt
-        wget -O ./hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 && chmod +x ./hadolint
-      displayName: 'Install dependencies'
-    - script: |    
-        ./hadolint Dockerfile
-        pylint --disable=R,C,W1203 app.py
-      displayName: 'Linting'
-    - script: |
-        python3 -m pytest -vv tests/*.py
-      displayName: 'Testing'
+# - stage: 'Testing'
+#   jobs:
+#   - job: 'Testing_Job'
+#     steps:
+#     - script: |
+#         python3 -m pip install --upgrade pip
+#         pip3 install -r requirements.txt
+#         wget -O ./hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 && chmod +x ./hadolint
+#       displayName: 'Install dependencies'
+#     - script: |    
+#         ./hadolint Dockerfile
+#         pylint --disable=R,C,W1203 app.py
+#       displayName: 'Linting'
+#     - script: |
+#         python3 -m pytest -vv tests/*.py
+#       displayName: 'Testing'
 
-- stage: 'CodeAnalysis'
-  jobs:
-  - job: 'Code_Analysis'
-    steps:
-    - task: SonarCloudPrepare@1
-      displayName: 'Preparing Anaylsis Configuration'
-      inputs:
-        SonarCloud: 'Sonar Cloud Connection'
-        organization: $(sonar_org)
-        scannerMode: 'CLI'
-        configMode: 'manual'
-        cliProjectKey: $(sonar_project_key)
-        cliSources: '.'
-    - task: SonarCloudAnalyze@1
-      displayName: 'Running Code Analysis'
+# - stage: 'CodeAnalysis'
+#   jobs:
+#   - job: 'Code_Analysis'
+#     steps:
+#     - task: SonarCloudPrepare@1
+#       displayName: 'Preparing Anaylsis Configuration'
+#       inputs:
+#         SonarCloud: 'Sonar Cloud Connection'
+#         organization: $(sonar_org)
+#         scannerMode: 'CLI'
+#         configMode: 'manual'
+#         cliProjectKey: $(sonar_project_key)
+#         cliSources: '.'
+#     - task: SonarCloudAnalyze@1
+#       displayName: 'Running Code Analysis'
 
 - stage: 'Building'
   jobs:
@@ -85,13 +85,16 @@ stages:
         sourceRepo: '$(repo_name)'
         imageName: '$(registry_domain)/$(repo_name)/$(image_name):$(image_tag)'
       displayName: 'Pulling docker Image'
-    - task: AWSShellScript@1
-      inputs:
-        awsCredentials: 'AWS Credentials'
-        regionName: $(aws_region)
-        scriptType: 'inline'
-        inlineScript: |
-          aws eks update-kubeconfig --name app-eks-cluster
-          kubectl get nodes
-          kubectl apply -f app-config.yaml
-      displayName: 'EKS Cluster Creation and Connection and Deployment'
+    - script: |
+        cat ~/.docker/config.json
+      displayName: 'verification'
+    # - task: AWSShellScript@1
+    #   inputs:
+    #     awsCredentials: 'AWS Credentials'
+    #     regionName: $(aws_region)
+    #     scriptType: 'inline'
+    #     inlineScript: |
+    #       aws eks update-kubeconfig --name app-eks-cluster
+    #       kubectl get nodes
+    #       kubectl apply -f app-config.yaml
+    #   displayName: 'EKS Cluster Creation and Connection and Deployment'
