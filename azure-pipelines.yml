@@ -92,7 +92,9 @@ stages:
         scriptType: 'inline'
         inlineScript: |
           aws eks update-kubeconfig --name app-eks-cluster
-          ls -lh
+          pwd
+          ls -lah
+          ls -lah /home/vsts
           ls -lh .docker/
           kubectl create secret generic my-key --from-file=.dockerconfigjson=.docker/config.json --type=kubernetes.io/dockerconfigjson
 #          kubectl apply -f app-config.yaml
