@@ -1,103 +1,105 @@
 # DevOps Tasks
 
 
+# Task #1 [Configuring secure K8s cluster on AWS(EKS) using IAC (Terraform)]
 
+### pre-requisites:
 
-## Project Overview
+1- Terrafrom CLI installed [https://learn.hashicorp.com/tutorials/terraform/install-cli]
 
-The aim of Capstone Udacity project is to use the skills acquired throughout Nano Degree journey to demonstrate Linting, Testing a simple Flask Web Application, Creating a docker image and push it towards AWS ECR then perform a rolling update on AWS EKS cluster, all these tasks performed using Circleci pipeline.
+2- AWS CLI installed and configured [https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2-linux.html]
 
-In this project some of Circleci orbs have been used:
-  -   circleci/aws-ecr@6.15.3
-  -   circleci/aws-eks@0.2.3
-  -   circleci/kubernetes@0.4.0
+## Description for files configured:
+
+This task consists of 3 main files under `Terraform-EKS` directory, here is a description for each file:
+
+1- `vpc.tf` : AWS EKS requires certain configurations related to VPC including [Subs, RTs, IGW, Nat GW, ...] to launch required resources [Worker Nodes, Pods, ...].
+
+ 2- `terraform.tfvars` : Contains values for some variables defined in `vpc.tf` file.
+
+3- `eks-cluster.tf` : Here we use EKS terraform module in order to create K8s cluster also we use the network resources created from `vpc.tf` file.
+
+## Implementation steps
+
+* Run the following commands to initialize the modules, detect resources to be created and create the resources
+
+   ```
+   terrafrom init
+   terraform plan
+   terraform apply
+   ```
 ---
+# Task #2 [Deploying Sample Application on the created K8s cluster using Ansible]
 
-## Setup the Environment, Lint, Test Application Locally
+### pre-requisites:
 
-* Create a virtualenv and activate it
+1- Make sure Python, AWS CLI installed and configured in correct way.
+
+2- Aws-iam-authenticator installed [https://docs.aws.amazon.com/eks/latest/userguide/install-aws-iam-authenticator.html]
+
+3- kubectl utility installed [https://kubernetes.io/docs/tasks/tools/install-kubectl-linux/]
+
+4- Ansible installed [https://docs.ansible.com/ansible/latest/installation_guide/intro_installation.html]
+ 
+
+## Description for files configured:
+
+This task consists of 3 main files under `Ansible-K8s` directory, here is a description for each file:
+
+1- `nginx-app.yaml` : Contains K8s deployment and service resources to deploy nginx inside the cluster.
+
+2- `deploy-to-k8s.yaml` : Contains Ansible configurations using K8s ansible collection to deploy nginx using `nginx-app.yaml` conf file.
+
+
+## Implementation steps
+
+* Connect to AWS EKS Cluster
    ```
-   python3 -m venv venv
-   . venv/bin/activate
-   ```
-* Run `make install` to install the necessary dependencies
-   ```
-   pip install --upgrade pip && pip install -r requirements.txt
-   wget -O ./hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 && chmod +x ./hadolint
+   aws eks update-kubeconfig --name app-eks-cluster
    ```
 
-* Lint the App `make lint`
-  ```
-  ./hadolint Dockerfile
-  pylint --disable=R,C,W1203 app.py
-  ```
+* Install Ansible K8s collection used in ansible configuration file
+   ```
+   ansible-galaxy collection install community.kubernetes
+   ```
 
-* Test the App `make test`
-  ```
-  python3 -m pytest -vv tests/*.py
-  ```
+* Running Ansible playbook against AWS EKS Cluster
+   ```
+   ansible-playbook deploy-to-k8s.yaml
+   ```
 ---
-## CircleCI Pipeline Jobs Overview
-CircleCI is a modern continuous integration and continuous delivery (CI/CD) platform, it automates build, test, and deployment of software.
+---
+# Task #3 [CICD pipeline using Azure Pipelines utilizing the following DevOps tools (SonarCloud, JFrog) and deploy sample app into AWS EKS] 
 
-In this project, Circleci used to build an Entire Pipeline (Creating AWS EKS Cluster, Lint & Test Simple Flask Web Application, Build Docker image & push it to AWS ECR and performing Kubernetes Rolling update and here is the details for the jobs:
+## Description for files configured:
+
+This task consists of Several files in the root dir of the repo and I am going to explain the need for each one:
+
+1- `app-config.yaml` : Contains K8s deployment and service resources to deploy simple flask app into the cluster.
+
+2- `Dockerfile` : Contains all necessary instructions to build docker image for flask app.
+
+3- `requirements.txt` : Contains all Deps required to perfrom simple linting and testing jobs on flask app.
+
+4- `script.sh` : Contains some Deps that is necessary to install some tools to help deploying the app into the created AWS EKS cluster.
+
+5- `app.py` : Simple flask web application code with 2 routes.
+
+6- `tests/` : Directory contains simple test scenario for flask app.
+
+7- `azure-pipelines.yml` : Main configuration file for Azure Pipeline.
+
+
+## Pipeline High Overview:
+
+Azure Pipeline consists of 4 Stages:
+
+1- `Testing` : Linting and Running simple test scenario in order to make sure tha app code is fine.
+
+2- `CodeAnalysis` : Code Quality checking applied using Sonar Cloud.
+
+3- `Building` : Docker image is created using Dockerfile and Image has been pushed into JFrog Artifactory repo.
+
+4- `Deploying` : Making sure that image exists on JFrog Artifactory and deploying the flask app into AWS EKS Cluster.
 
 ---
-
-* Create Kubernetes Cluster using orbs circleci/aws-eks@1.0.3
-  ```
-  aws-eks/create-cluster:
-    cluster-name: prod-cluster
-  ```
-
-* Create Deployment steps of an Original Application with aws-eks/python3 executor
-  ```
-  - aws-eks/update-kubeconfig-with-authenticator:
-      cluster-name: << parameters.cluster-name >>
-      install-kubectl: true
-  - kubernetes/create-or-update-resource:
-      resource-file-path: main-deployment.yml
-      resource-name: deployment/main-deployment.yml
-  ```
-  
-* Lint & Test The New App before building Docker image using `python:3.7.3-stretch` docker image
-  ```
-  . venv/bin/activate
-  make install
-  make lint
-  make test
-  ```
-
-* Build The New App Dokcer image using orbs `aws-ecr/build-and-push-image`
-  ```
-  - aws-ecr/build-and-push-image:
-        repo: devops-project
-        tag: 'web-app-2.0'
-  ```
-* Perform Rolling Update using `aws-eks/python3`
-  ```
-  - aws-eks/update-kubeconfig-with-authenticator:
-          cluster-name: << parameters.cluster-name >>
-          install-kubectl: true
-      - kubernetes/create-or-update-resource:
-          get-rollout-status: true
-          resource-file-path: rolling-deployment.yml
-          resource-name: deployment/web-app-deployment
-  ```
-
-* Testing the cluster & New Application
-  ```
-  - run:
-      name: "Post Rolling Deployment Commands For Testing New Application"
-      command: |
-        kubectl get nodes
-        kubectl get deployment
-        kubectl get services
-        kubectl get pods
-        curl "http://$lb:8000"
-  ```
-  
- ## References
- - https://circleci.com/developer/orbs/orb/circleci/aws-ecr
- - https://circleci.com/developer/orbs/orb/circleci/aws-eks
- - https://circleci.com/developer/orbs/orb/circleci/kubernetes

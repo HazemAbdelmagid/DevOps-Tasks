@@ -1,6 +1,4 @@
-trigger:
-- main
-
+# Variabled defined that will be referenced in the jobs.
 variables:
   sonar_org: hazemabdelmagid
   sonar_project_key: HazemAbdelmagid_DevOps-Tasks
@@ -10,16 +8,19 @@ variables:
   image_tag: latest
   aws_region: ca-central-1
 
+# Agents image that will execute the jobs.
 pool:
   vmImage: ubuntu-latest
 
+# Stages define in Azure Pipeline.
 stages:
 
+# Linting & Testing Stage to check the Flask Code.
 - stage: 'Testing'
   jobs:
   - job: 'Testing_Job'
     steps:
-    - script: |
+    - script: |     
         python3 -m pip install --upgrade pip
         pip3 install -r requirements.txt
         wget -O ./hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 && chmod +x ./hadolint
@@ -32,10 +33,12 @@ stages:
         python3 -m pytest -vv tests/*.py
       displayName: 'Testing'
 
+# Perform Code Analysis using Sonar Cloud.
 - stage: 'CodeAnalysis'
   jobs:
   - job: 'Code_Analysis'
     steps:
+    # First task is used to prepare the analysis configuration for specific repo.
     - task: SonarCloudPrepare@1
       displayName: 'Preparing Anaylsis Configuration'
       inputs:
@@ -45,18 +48,22 @@ stages:
         configMode: 'manual'
         cliProjectKey: $(sonar_project_key)
         cliSources: '.'
+    # Make the analysis and provide a link for the result.
     - task: SonarCloudAnalyze@1
       displayName: 'Running Code Analysis'
 
+# Building Docker Image and Pushing it to JFrog Artifactory Repo.
 - stage: 'Building'
   jobs:
   - job: 'Building_Docker_Image'
     steps:
+    # Building the docker image with specific name and tag.
     - task: Docker@2
       displayName: 'Building Docker Image'
       inputs:
         command: build
         arguments: --tag $(registry_domain)/$(repo_name)/$(image_name)
+    # Pushing the docker image into JFrog Artifactory Repo.
     - task: ArtifactoryDocker@1
       displayName: 'Pushing Docker Image to JFrog Artifactory'
       inputs:
@@ -65,15 +72,17 @@ stages:
         targetRepo: '$(registry_domain)/$(repo_name)'
         imageName: '$(registry_domain)/$(repo_name)/$(image_name):$(image_tag)'
 
-
+# Deployment stage for Simple flask app.
 - stage: 'Deploying'
   jobs:
   - job: 'Deployment_Job'
     steps:
+    # Install some Deps [Kubectl & aws-iam-authenticator] to connect to AWS EKS cluster and deploy flask app.
     - script: |
         chmod +x script.sh
         ./script.sh
       displayName: 'Install Dependencies'
+    # Make sure that the image exists on the repo and create config.json file to be used for authentication to Jfrog in next task.
     - task: ArtifactoryDocker@1
       inputs:
         command: 'pull'
@@ -81,6 +90,7 @@ stages:
         sourceRepo: '$(repo_name)'
         imageName: '$(registry_domain)/$(repo_name)/$(image_name):$(image_tag)'
       displayName: 'Pulling docker Image'
+    # Using AWS task to connect to AWS EKS cluster, creating a secret contains all info auth data to connect to JFrog Artifactory and pull the image to create the pods.
     - task: AWSShellScript@1
       inputs:
         awsCredentials: 'AWS Credentials'
