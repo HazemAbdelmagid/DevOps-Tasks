@@ -84,6 +84,10 @@ stages:
         command: 'login'
         addPipelineData: false
         addBaseImageData: false
+    - script: |
+        ls -lha
+        ls -lah /home/vsts
+        cat /home/vsts/.docker/config.json
     # - task: ArtifactoryDocker@1
     #   inputs:
     #     command: 'pull'
