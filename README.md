@@ -44,7 +44,7 @@ This task consists of 3 main files under `Terraform-EKS` directory, here is a de
 
 ## Description for files configured:
 
-This task consists of 3 main files under `Ansible-K8s` directory, here is a description for each file:
+This task consists of 2 main files under `Ansible-K8s` directory, here is a description for each file:
 
 1- `nginx-app.yaml` : Contains K8s deployment and service resources to deploy nginx inside the cluster.
 
