@@ -70,21 +70,21 @@ stages:
   jobs:
   - job: 'Deployment_Job'
     steps:
-#     - task: TerraformInstaller@0
-#       inputs:
-#         terraformVersion: 'latest'
-#       displayName: 'Terrafrom Installation'
-#     - script: |
-#         chmod +x script.sh
-#         ./script.sh
-#       displayName: 'Install Dependencies'
-#     - task: ArtifactoryDocker@1
-#       inputs:
-#         command: 'pull'
-#         artifactoryService: 'JFrog Connection'
-#         sourceRepo: '$(repo_name)'
-#         imageName: '$(registry_domain)/$(repo_name)/$(image_name):$(image_tag)'
-#       displayName: 'Pulling docker Image'
+    - task: TerraformInstaller@0
+      inputs:
+        terraformVersion: 'latest'
+      displayName: 'Terrafrom Installation'
+    - script: |
+        chmod +x script.sh
+        ./script.sh
+      displayName: 'Install Dependencies'
+    - task: ArtifactoryDocker@1
+      inputs:
+        command: 'pull'
+        artifactoryService: 'JFrog Connection'
+        sourceRepo: '$(repo_name)'
+        imageName: '$(registry_domain)/$(repo_name)/$(image_name):$(image_tag)'
+      displayName: 'Pulling docker Image'
     - task: AWSShellScript@1
       inputs:
         awsCredentials: 'AWS Credentials'
@@ -92,6 +92,7 @@ stages:
         scriptType: 'inline'
         inlineScript: |
           aws eks update-kubeconfig --name app-eks-cluster
+          ls -lh
           ls -lh .docker/
           kubectl create secret generic my-key --from-file=.dockerconfigjson=.docker/config.json --type=kubernetes.io/dockerconfigjson
 #          kubectl apply -f app-config.yaml
