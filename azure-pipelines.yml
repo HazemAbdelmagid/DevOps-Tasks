@@ -92,10 +92,6 @@ stages:
         scriptType: 'inline'
         inlineScript: |
           aws eks update-kubeconfig --name app-eks-cluster
-          pwd
-          ls -lah
-          ls -lah /home/vsts
-          ls -lh .docker/
-          kubectl create secret generic my-key --from-file=.dockerconfigjson=.docker/config.json --type=kubernetes.io/dockerconfigjson
-#          kubectl apply -f app-config.yaml
+          kubectl create secret generic my-key --from-file=.dockerconfigjson=/home/vsts/.docker/config.json --type=kubernetes.io/dockerconfigjson
+          kubectl apply -f app-config.yaml
       displayName: 'EKS Cluster Creation and Connection and Deployment'
