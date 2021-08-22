@@ -1,17 +1,19 @@
 ---
 - name: Deploy sample application into K8s.
   hosts: localhost
+  vars:
+    ansible_python_interpreter: '/usr/bin/python3'
   tasks:
     - name: Create a k8s namespace.
-      community.kubernetes.k8s:
+      k8s:
         name: nginx-app-namespace
         api_version: v1
         kind: Namespace
         state: present
-        kubeconfig: /home/tux/devops-interview-project/kubeconfig_app-eks-cluster
+        kubeconfig: /home/tux/.kube/config
     - name: Deploy nginx app
-      community.kubernetes.k8s:
+      k8s:
         src: /home/tux/devops-interview-project/nginx-app.yaml
         state: present
-        kubeconfig: /home/tux/devops-interview-project/kubeconfig_app-eks-cluster
+        kubeconfig:  /home/tux/.kube/config
         namespace: nginx-app-namespace
