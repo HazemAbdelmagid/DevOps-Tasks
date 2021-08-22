@@ -12,9 +12,12 @@ spec:
       labels:
         app: app
     spec:
+      imagePullSecrets:
+      - name: my-key
       containers:
       - name: app
         image: devopsserver2021.jfrog.io/docker-image-repo/app:latest
+        imagePullPolicy: Always
         ports:
         - containerPort: 5000
 ---
