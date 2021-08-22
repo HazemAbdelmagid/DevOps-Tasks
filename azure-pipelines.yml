@@ -68,7 +68,7 @@ stages:
         command: 'push'
         artifactoryService: 'JFrog Connection'
         targetRepo: '$(registry_domain)/$(repo_name)'
-        imageName: '$(registry_domain)/$(repo_name)/$(image_name):$(image_name)'
+        imageName: '$(registry_domain)/$(repo_name)/$(image_name):$(image_tag)'
 
 
 # - stage: 'Deploying'
