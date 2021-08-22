@@ -16,7 +16,7 @@ spec:
       - name: app
         image: devopsserver2021.jfrog.io/docker-image-repo/app:latest
         ports:
-        - containerPort: 80
+        - containerPort: 5000
 ---
 apiVersion: v1
 kind: Service
@@ -27,9 +27,9 @@ metadata:
 spec:
   ports:
   - name: http
-    port: 80
+    port: 5000
     protocol: TCP
-    targetPort: 80
+    targetPort: 5000
   selector:
     app: app
   type: LoadBalancer
