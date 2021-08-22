@@ -24,12 +24,10 @@ stages:
         pip3 install -r requirements.txt
         wget -O ./hadolint https://github.com/hadolint/hadolint/releases/download/v1.16.3/hadolint-Linux-x86_64 && chmod +x ./hadolint
       displayName: 'Install dependencies'
-        
     - script: |    
         ./hadolint Dockerfile
         pylint --disable=R,C,W1203 app.py
       displayName: 'Linting'
-    
     - script: |
         python3 -m pytest -vv tests/*.py
       displayName: 'Testing'
@@ -70,7 +68,7 @@ stages:
 
 - stage: 'Deploying'
   jobs:
-  - job: 'TerraformInstallation'
+  - job: 'Deployment_Job'
     steps:
     - task: TerraformInstaller@0
       inputs:
@@ -79,6 +77,7 @@ stages:
     - script: |
         chmod +x script.sh
         ./script.sh
+      displayName: 'Install Dependencies'
     - task: ArtifactoryDocker@1
       inputs:
         command: 'pull'
@@ -92,12 +91,6 @@ stages:
         regionName: $(aws_region)
         scriptType: 'inline'
         inlineScript: |
-          cd 1-Terraform-Task/
-          terraform init
-          terraform plan
-          terraform apply --auto-approve
-          aws eks update-kubeconfig --name app-eks-cluster
-          kubectl get nodes
           aws eks update-kubeconfig --name app-eks-cluster
           kubectl get nodes
           kubectl apply -f app-config.yaml
