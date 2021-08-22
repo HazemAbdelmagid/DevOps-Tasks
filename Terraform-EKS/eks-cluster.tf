@@ -1,4 +1,4 @@
-# Kubernetes provider required to get API Server Endpoint and required auth data for AWS to talk to cluster.
+# Passing Kubernetes provider with required info regarding API Server Endpoint and necessary auth data.
 provider "kubernetes" {
     host = data.aws_eks_cluster.app-cluster.endpoint
     token = data.aws_eks_cluster_auth.app-cluster.token
