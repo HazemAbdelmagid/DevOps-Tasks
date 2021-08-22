@@ -1,14 +1,14 @@
 trigger:
 - main
 
-variables:
+# variables:
   # sonar_org: hazemabdelmagid
   # sonar_project_key: HazemAbdelmagid_DevOps-Tasks
-  registry_domain: devopsserver2021.jfrog.io
-  repo_name: docker-image-repo
-  image_name: app
-  image_tag: latest
-  aws_region: ca-central-1
+  # registry_domain: devopsserver2021.jfrog.io
+  # repo_name: docker-image-repo
+  # image_name: app
+  # image_tag: latest
+  # aws_region: ca-central-1
 
 pool:
   vmImage: ubuntu-latest
@@ -70,28 +70,34 @@ stages:
   jobs:
   - job: 'Deployment_Job'
     steps:
-    - task: TerraformInstaller@0
+    # - task: TerraformInstaller@0
+    #   inputs:
+    #     terraformVersion: 'latest'
+    #   displayName: 'Terrafrom Installation'
+    # - script: |
+    #     chmod +x script.sh
+    #     ./script.sh
+    #   displayName: 'Install Dependencies'
+    - task: Docker@2
       inputs:
-        terraformVersion: 'latest'
-      displayName: 'Terrafrom Installation'
-    - script: |
-        chmod +x script.sh
-        ./script.sh
-      displayName: 'Install Dependencies'
-    - task: ArtifactoryDocker@1
-      inputs:
-        command: 'pull'
-        artifactoryService: 'JFrog Connection'
-        sourceRepo: '$(repo_name)'
-        imageName: '$(registry_domain)/$(repo_name)/$(image_name):$(image_tag)'
-      displayName: 'Pulling docker Image'
-    - task: AWSShellScript@1
-      inputs:
-        awsCredentials: 'AWS Credentials'
-        regionName: $(aws_region)
-        scriptType: 'inline'
-        inlineScript: |
-          aws eks update-kubeconfig --name app-eks-cluster
-          kubectl create secret generic my-key --from-file=.dockerconfigjson=/home/vsts/.docker/config.json --type=kubernetes.io/dockerconfigjson
-          kubectl apply -f app-config.yaml
-      displayName: 'EKS Cluster Creation and Connection and Deployment'
+        containerRegistry: 'Docker Connection'
+        command: 'login'
+        addPipelineData: false
+        addBaseImageData: false
+    # - task: ArtifactoryDocker@1
+    #   inputs:
+    #     command: 'pull'
+    #     artifactoryService: 'JFrog Connection'
+    #     sourceRepo: '$(repo_name)'
+    #     imageName: '$(registry_domain)/$(repo_name)/$(image_name):$(image_tag)'
+    #   displayName: 'Pulling docker Image'
+    # - task: AWSShellScript@1
+    #   inputs:
+    #     awsCredentials: 'AWS Credentials'
+    #     regionName: $(aws_region)
+    #     scriptType: 'inline'
+    #     inlineScript: |
+    #       aws eks update-kubeconfig --name app-eks-cluster
+    #       kubectl create secret generic my-key --from-file=.dockerconfigjson=/home/vsts/.docker/config.json --type=kubernetes.io/dockerconfigjson
+    #       kubectl apply -f app-config.yaml
+    #   displayName: 'EKS Cluster Creation and Connection and Deployment'
