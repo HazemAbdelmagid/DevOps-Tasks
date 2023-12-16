@@ -1,7 +1,8 @@
 # DevOps Tasks
 
+> This Repository contains a couple of Simple DevOps Tasks.
 
-# Task #1 [Configuring secure K8s cluster on AWS(EKS) using IAC (Terraform)]
+## Task #1: Configuring secure K8s cluster on AWS EKS using Terraform:
 
 ### pre-requisites:
 
@@ -29,7 +30,7 @@ This task consists of 3 main files under `Terraform-EKS` directory, here is a de
    terraform apply
    ```
 ---
-# Task #2 [Deploying Sample Application on the created K8s cluster using Ansible]
+## Task #2: Deploying Sample Application on EKS cluster using Ansible:
 
 ### pre-requisites:
 
@@ -69,7 +70,7 @@ This task consists of 2 main files under `Ansible-K8s` directory, here is a desc
    ```
 ---
 ---
-# Task #3 [CICD pipeline using Azure Pipelines utilizing the following DevOps tools (SonarCloud, JFrog) and deploy sample app into AWS EKS] 
+## Task#3: Creating Azure Pipeline utilizing (SonarCloud & JFrog) to deploy a sample application on EKS:
 
 ## Description for files configured:
 
